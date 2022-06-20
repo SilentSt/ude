@@ -52,6 +52,35 @@ class EditorScreenWidget extends ElementaryWidget<IEditorScreenWidgetModel> {
               color: AppColors.primaryButton,
             ),
           ),
+          PopupMenuButton(
+              color: AppColors.cardColor,
+              onSelected: (res) {
+                if (res == 'clear') {
+                  wm.clearConsole();
+                } else if (res == 'sense') {
+                  wm.showAddSenseDialog();
+                }
+              },
+              itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'clear',
+                      child: Text(
+                        'Clear console',
+                        style: TextStyle(color: AppColors.text),
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'sense',
+                      child: Text(
+                        'Add Sense',
+                        style: TextStyle(color: AppColors.text),
+                      ),
+                    ),
+                  ],
+              child: const Icon(
+                Icons.menu,
+                color: AppColors.primaryButton,
+              ))
         ],
       ),
       drawer: FileSystem(wm: wm),

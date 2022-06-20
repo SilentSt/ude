@@ -6,8 +6,7 @@ class Sense {
   });
 
   Sense.fromJson(Map<String, dynamic> data)
-      : sense = List.generate(
-            data['data'].length, (index) => data['data'][index]);
+      : sense = List.generate(data['data'].length, (index) => data['data'][index]);
 
   Map<String, dynamic> toJson() => {
         'intellis': sense,

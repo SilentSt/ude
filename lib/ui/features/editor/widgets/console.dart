@@ -19,6 +19,7 @@ class Console extends StatelessWidget {
         height: MediaQuery.of(context).size.height * .2,
         width: MediaQuery.of(context).size.width,
         child: SingleChildScrollView(
+          controller: wm.consoleScroll,
           child: ColoredBox(
             color: AppColors.background,
             child: Text(

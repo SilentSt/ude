@@ -12,8 +12,8 @@ class SenseService {
     final sense = UserStorage.sense;
     sense.sense.add(senseString);
     final res = await SenseApi.sendSense(sense);
-    final Map<String, dynamic> data = json.decode(res.body);
     if (res.statusCode > 299) {
+      final Map<String, dynamic> data = json.decode(res.body);
       UserStorage.errors.add(AppError.fromJson(data));
       return false;
     }
@@ -23,9 +23,9 @@ class SenseService {
 
   Future<bool> removeSense(int index) async {
     UserStorage.sense.sense.removeAt(index);
-    final res = await SenseApi.sendSense(UserStorage.sense);
-    final Map<String, dynamic> data = json.decode(res.body);
+    final res = await SenseApi.sendSense(UserStorage.sense);    
     if (res.statusCode > 299) {
+      final Map<String, dynamic> data = json.decode(res.body);
       UserStorage.errors.add(AppError.fromJson(data));
       return false;
     }
@@ -41,6 +41,9 @@ class SenseService {
       return false;
     }
     UserStorage.sense = Sense.fromJson(data);
+    UserStorage.sense.sense.sort(
+      (a, b) => a.compareTo(b),
+    );
     return true;
   }
 }

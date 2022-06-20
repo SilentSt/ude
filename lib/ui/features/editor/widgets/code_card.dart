@@ -19,6 +19,7 @@ class CodeCard extends StatelessWidget {
       height: MediaQuery.of(context).size.height * .7,
       width: MediaQuery.of(context).size.width * .7,
       child: SingleChildScrollView(
+        controller: wm.codeScroll,
         child: EntityStateNotifierBuilder<File>(
             listenableEntityState: wm.currentFile,
             builder: (context, file) {

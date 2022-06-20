@@ -3,8 +3,11 @@
 import 'package:code_text_field/code_text_field.dart';
 import 'package:elementary/elementary.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:ude/data/local_storage/user_storage.dart';
 import 'package:ude/data/models/code.dart';
+import 'package:ude/resources/app_strings.dart';
+import 'package:ude/ui/ui_kit/buttons/app_button.dart';
 import 'package:ude/ui/widgets/app_error.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:highlight/languages/matlab.dart';
@@ -20,6 +23,9 @@ enum Language {
 
 abstract class IEditorScreenWidgetModel extends IWidgetModel {
   ListenableState<EntityState<CodeController>> get codeController;
+  ScrollController get senseScroll;
+  ScrollController get codeScroll;
+  ScrollController get consoleScroll;
   TextEditingController get fileNameController;
   TextEditingController get senseController;
   ListenableState<EntityState<Language>> get languageController;
@@ -37,9 +43,12 @@ abstract class IEditorScreenWidgetModel extends IWidgetModel {
   Future<void> editFile();
   Future<void> removeSense(int index);
   Future<void> editSense(int index);
+  Future<void> showAddSenseDialog();
+  Future<void> showRemoveSenseDialog(int index);
   void implementSense(String sense);
   void senseListener();
   void changeCurrentFile(int index);
+  void clearConsole();
 }
 
 EditorScreenWidgetModel defaultEditorScreenWidgetModelFactory(
@@ -76,6 +85,7 @@ class EditorScreenWidgetModel
       _language.content(Language.matlab);
       _languageController.content(Language.matlab);
       _currentFile.content(UserStorage.files.first);
+      _codeController.value!.data!.text = UserStorage.files.first.code;
       _sense.content(UserStorage.sense.sense);
       _console.content('');
     } on Exception catch (e) {
@@ -111,6 +121,12 @@ class EditorScreenWidgetModel
   final _fileChanged = EntityStateNotifier<bool>(
     const EntityState(data: false),
   );
+
+  final _codeScroll = ScrollController();
+
+  final _consoleScroll = ScrollController();
+
+  final _senseScroll = ScrollController();
 
   @override
   ListenableState<EntityState<CodeController>> get codeController =>
@@ -152,6 +168,15 @@ class EditorScreenWidgetModel
   ListenableState<EntityState<bool>> get fileChanged => _fileChanged;
 
   @override
+  ScrollController get codeScroll => _codeScroll;
+
+  @override
+  ScrollController get consoleScroll => _consoleScroll;
+
+  @override
+  ScrollController get senseScroll => _senseScroll;
+
+  @override
   Future<void> compile() async {
     final file = _currentFile.value!.data!;
     final res = await model.codeService.compile(
@@ -164,7 +189,8 @@ class EditorScreenWidgetModel
       );
       return;
     }
-    _console.content(UserStorage.results.last.data);
+    _console
+        .content(UserStorage.results.map((e) => e.data).toList().join('\n'));
   }
 
   @override
@@ -173,7 +199,7 @@ class EditorScreenWidgetModel
     final res = await model.codeService.sendFile(
       lng: file.lng,
       name: file.name,
-      code: file.code,
+      code: _codeController.value!.data!.text,
     );
     if (!res) {
       await showCupertinoDialog(
@@ -183,6 +209,11 @@ class EditorScreenWidgetModel
       return;
     }
     _files.content(UserStorage.files);
+    _currentFile.content(UserStorage.files
+        .where(
+            (element) => element.name == file.name && element.lng == file.lng)
+        .first);
+    _fileChanged.content(false);
   }
 
   @override
@@ -330,5 +361,63 @@ class EditorScreenWidgetModel
   @override
   void changeCurrentFile(int index) {
     _currentFile.content(_files.value!.data![index]);
+  }
+
+  @override
+  void clearConsole() => _console.content('');
+
+  @override
+  Future<void> showAddSenseDialog() async {
+    await showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text(AppStrings.senseDialog),
+        content: Card(
+          child: CupertinoTextField(
+            controller: _senseController,
+            textAlign: TextAlign.center,
+            decoration: const BoxDecoration(color: Colors.transparent),
+          ),
+        ),
+        actions: [
+          AppButton.primary(
+            onPressed: () => {Navigator.of(context).pop()},
+            text: AppStrings.cancel,
+          ),
+          AppButton.primary(
+            onPressed: () {
+              createSense();
+              Navigator.of(context).pop();
+            },
+            text: AppStrings.ok,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<void> showRemoveSenseDialog(int index) async {
+    await showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text(AppStrings.removeDialog),
+        content: Text(UserStorage.sense.sense[index]),
+        actions: [
+          AppButton.primary(
+            onPressed: () => {Navigator.of(context).pop()},
+            text: AppStrings.cancel,
+          ),
+          AppButton.primary(
+            onPressed: () {
+              removeSense(index);
+              _sense.content(UserStorage.sense.sense);
+              Navigator.of(context).pop();
+            },
+            text: AppStrings.ok,
+          ),
+        ],
+      ),
+    );
   }
 }

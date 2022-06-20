@@ -13,9 +13,9 @@ class CodeService {
     required String code,
   }) async {
     final file = File(name: name, lng: lng, code: code);
-    final res = await CodeApi.sendFile(file);
-    final Map<String, dynamic> data = json.decode(res.body);
-    if (res.statusCode > 299) {      
+    final res = await CodeApi.sendFile(file);    
+    if (res.statusCode > 299) {    
+      final Map<String, dynamic> data = json.decode(res.body);  
       UserStorage.errors.add(
         AppError.fromJson(
           data,
