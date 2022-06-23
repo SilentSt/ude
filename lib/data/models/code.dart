@@ -17,7 +17,7 @@ class File {
   Map<String, dynamic> toJson() => {
         'fileName': name,
         'code': code,
-        'lnaguage': lng,
+        'language': lng,
       };
 }
 
